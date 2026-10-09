@@ -2,23 +2,19 @@
 <html lang="fr">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="description" content="Billets d'avion aller-retour nettement sous leur prix habituel, au départ de Montréal et des aéroports voisins. Mis à jour deux fois par jour.">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Radar Vols Montréal</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600&display=swap">
 <style>
-html { color-scheme: light; }
-body { margin: 0; }
-img { max-width: 100%; }
-[hidden] { display: none !important; }
-/* Layout: a departures board. One column of ticket rows (route | details | fare tag), filters above, method below. */
+html,body{margin:0}[hidden]{display:none!important}img{max-width:100%}
+/* Layout: a departures board. Two tabs (flights, hotels); each is one column of ticket rows (what | details | price tag), filters above, method below. */
 :root {
   --bg: #EEF1F4;
   --surface: #FFFFFF;
   --ink: #0F1F2E;
   --muted: #586877;
   --line: #D3DAE1;
-  --sign: #FFC400;        /* airport wayfinding yellow: fare tags only */
+  --sign: #FFC400;        /* airport wayfinding yellow: price tags only */
   --sign-ink: #1A1400;
   --good: #0B7A4B;
   --good-bg: #DDF3E7;
@@ -41,6 +37,7 @@ img { max-width: 100%; }
 * { box-sizing: border-box; }
 body { background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 16px; line-height: 1.5; }
 .wrap { max-width: 920px; margin: 0 auto; padding-inline: 16px; padding-block: 28px 56px; display: flex; flex-direction: column; gap: 28px; }
+.pane { display: flex; flex-direction: column; gap: 28px; }
 
 header { display: flex; flex-direction: column; gap: 10px; }
 .eyebrow { font-family: var(--display); font-weight: 600; letter-spacing: .14em; text-transform: uppercase; font-size: 14px; color: var(--muted); display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
@@ -50,13 +47,18 @@ h1 { font-family: var(--display); font-weight: 700; font-size: clamp(38px, 8vw, 
 .status { display: flex; flex-wrap: wrap; gap: 6px 22px; font-size: 14px; color: var(--muted); font-variant-numeric: tabular-nums; border-top: 2px solid var(--ink); padding-top: 10px; }
 .status strong { color: var(--ink); font-weight: 600; }
 
+.tabs { display: flex; gap: 0; border-bottom: 2px solid var(--ink); flex-wrap: wrap; }
+.tabs button { font-family: var(--display); font-weight: 700; font-size: 22px; text-transform: uppercase; letter-spacing: .06em; background: transparent; color: var(--muted); border: 0; padding: 8px 18px 6px; cursor: pointer; border-bottom: 4px solid transparent; margin-bottom: -2px; }
+.tabs button[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--sign); }
+.tabs button .n { font-size: 15px; font-weight: 600; color: var(--muted); margin-left: 6px; font-variant-numeric: tabular-nums; }
+
 .filters { display: flex; flex-direction: column; gap: 10px; }
 .frow { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
 .flabel { font-family: var(--display); font-weight: 600; text-transform: uppercase; letter-spacing: .12em; font-size: 13px; color: var(--muted); width: 74px; }
 button.chip { font: inherit; font-size: 14px; font-weight: 500; border: 1px solid var(--line); background: var(--surface); color: var(--ink); padding: 5px 12px; border-radius: 999px; cursor: pointer; }
 button.chip:hover { border-color: var(--ink); }
 button.chip[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
-button.chip:focus-visible, a:focus-visible { outline: 3px solid var(--sign); outline-offset: 2px; }
+button:focus-visible, a:focus-visible { outline: 3px solid var(--sign); outline-offset: 2px; }
 
 .board { display: flex; flex-direction: column; gap: 12px; }
 .ticket { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1.3fr) auto; }
@@ -64,12 +66,14 @@ button.chip:focus-visible, a:focus-visible { outline: 3px solid var(--sign); out
 .route { display: flex; flex-direction: column; gap: 4px; }
 .codes { font-family: var(--display); font-weight: 700; font-size: 40px; line-height: 1; letter-spacing: .02em; display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
 .codes .arrow { font-weight: 500; color: var(--muted); font-size: 28px; }
+.hname { font-family: var(--display); font-weight: 700; font-size: 26px; line-height: 1.05; letter-spacing: .01em; overflow-wrap: anywhere; text-wrap: balance; }
 .cities { font-size: 15px; color: var(--muted); overflow-wrap: anywhere; }
 .cities strong { color: var(--ink); font-weight: 600; }
 .details { border-left: 1px dashed var(--line); display: flex; flex-direction: column; gap: 6px; justify-content: center; font-size: 15px; }
 .details .dates { font-weight: 600; font-variant-numeric: tabular-nums; }
 .details .meta { color: var(--muted); overflow-wrap: anywhere; }
 .details .note { color: var(--muted); font-size: 13px; }
+.stars { letter-spacing: .08em; color: var(--ink); }
 .fare { border-left: 1px dashed var(--line); display: flex; flex-direction: column; align-items: flex-end; justify-content: center; gap: 6px; text-align: right; min-width: 190px; }
 .price { background: var(--sign); color: var(--sign-ink); font-family: var(--display); font-weight: 700; font-size: 38px; line-height: 1; padding: 6px 12px 7px; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .price small { font-size: 16px; font-weight: 600; letter-spacing: .04em; }
@@ -100,61 +104,103 @@ h2 { font-family: var(--display); font-weight: 700; font-size: 26px; text-transf
 </style>
 </head>
 <body>
+
+
 <div class="wrap">
   <header>
-    <div class="eyebrow"><b>Départs</b><span>YUL · YQB · YOW · BTV · PBG</span></div>
+    <div class="eyebrow"><b>Départs</b><span>YUL · YQB · YOW · BTV · PBG</span><b>Hôtels</b><span>25 villes au Canada</span></div>
     <h1>Radar Vols Montréal</h1>
-    <p class="lede">Des billets aller-retour nettement sous leur prix habituel, au départ de Montréal et des aéroports voisins. Un agent balaie les prix deux fois par jour et ne garde que les rabais confirmés.</p>
+    <p class="lede">Des billets aller-retour nettement sous leur prix habituel au départ de Montréal, et des hôtels en rabais partout au Canada. Un agent balaie les prix deux fois par jour et ne garde que les rabais confirmés.</p>
     <div class="status" id="status" aria-live="polite">
       <span>Dernier balayage : <strong id="st-last">—</strong></span>
-      <span>Aubaines en cours : <strong id="st-count">—</strong></span>
       <span>Routes comparées : <strong id="st-scanned">—</strong></span>
+      <span>Hôtels comparés : <strong id="st-hscanned">—</strong></span>
     </div>
   </header>
 
-  <section class="filters" aria-label="Filtres">
-    <div class="frow" id="f-origin"><span class="flabel">Départ</span></div>
-    <div class="frow" id="f-region"><span class="flabel">Région</span></div>
-    <div class="frow" id="f-sort"><span class="flabel">Trier</span>
-      <button class="chip" id="sort-pct" data-sort="pct" aria-pressed="true">Plus gros rabais</button>
-      <button class="chip" id="sort-price" data-sort="price" aria-pressed="false">Prix le plus bas</button>
-      <button class="chip" id="sort-date" data-sort="depart" aria-pressed="false">Départ le plus proche</button>
-      <button class="chip" id="toggle-expired" aria-pressed="false">Afficher les expirées</button>
-    </div>
-  </section>
+  <div class="tabs" role="tablist" aria-label="Type d'aubaine">
+    <button role="tab" id="tab-flights" aria-controls="pane-flights" aria-selected="true">Vols<span class="n" id="n-flights"></span></button>
+    <button role="tab" id="tab-hotels" aria-controls="pane-hotels" aria-selected="false">Hôtels au Canada<span class="n" id="n-hotels"></span></button>
+  </div>
 
-  <section class="board" id="board" aria-live="polite">
-    <div class="empty" id="empty"><strong>Chargement du tableau</strong>Les aubaines confirmées par l'agent s'affichent ici : route, dates, prix actuel, prix habituel et lien de réservation.</div>
-  </section>
+  <div class="pane" id="pane-flights" role="tabpanel" aria-labelledby="tab-flights">
+    <section class="filters" aria-label="Filtres des vols">
+      <div class="frow" id="f-origin"><span class="flabel">Départ</span></div>
+      <div class="frow" id="f-region"><span class="flabel">Région</span></div>
+      <div class="frow" id="f-sort"><span class="flabel">Trier</span>
+        <button class="chip" id="sort-pct" data-sort="pct" aria-pressed="true">Plus gros rabais</button>
+        <button class="chip" id="sort-price" data-sort="price" aria-pressed="false">Prix le plus bas</button>
+        <button class="chip" id="sort-date" data-sort="depart" aria-pressed="false">Départ le plus proche</button>
+        <button class="chip" id="toggle-expired" aria-pressed="false">Afficher les expirées</button>
+      </div>
+    </section>
 
-  <section class="method">
-    <h2>Comment une aubaine arrive ici</h2>
-    <ol>
-      <li><strong>Balayage</strong>L'agent relève le meilleur prix aller-retour vers chaque région du monde, depuis les cinq aéroports, sur les six prochains mois.</li>
-      <li><strong>Vérification</strong>Chaque prix prometteur est rouvert sur Google Flights aux dates exactes. Il n'est gardé que si Google le classe « bas » par rapport au prix habituel de la route.</li>
-      <li><strong>Publication</strong>Le rabais doit atteindre au moins 15 %. Une aubaine qui n'est plus disponible au balayage suivant passe en « expirée ».</li>
-    </ol>
-  </section>
+    <section class="board" id="board" aria-live="polite">
+      <div class="empty"><strong>Chargement du tableau</strong>Les aubaines confirmées par l'agent s'affichent ici : route, dates, prix actuel, prix habituel et lien de réservation.</div>
+    </section>
 
-  <p class="fine">Prix en dollars canadiens, taxes incluses, pour un adulte en classe économique, relevés à l'heure du dernier balayage. Les tarifs changent vite : vérifiez toujours le prix final avant de payer. Chez les transporteurs à bas prix (Flair, Arajet, Allegiant, Breeze), le bagage de cabine et la valise sont souvent en supplément. Départs de Burlington (BTV) et Plattsburgh (PBG) : passeport requis pour traverser la frontière.</p>
+    <section class="method">
+      <h2>Comment une aubaine de vol arrive ici</h2>
+      <ol>
+        <li><strong>Balayage</strong>L'agent relève le meilleur prix aller-retour vers chaque région du monde, depuis les cinq aéroports, sur les six prochains mois.</li>
+        <li><strong>Vérification</strong>Chaque prix prometteur est rouvert sur Google Flights aux dates exactes. Il n'est gardé que si Google le classe « bas » par rapport au prix habituel de la route.</li>
+        <li><strong>Publication</strong>Le rabais doit atteindre au moins 15 %. Une aubaine qui n'est plus disponible au balayage suivant passe en « expirée ».</li>
+      </ol>
+    </section>
+
+    <p class="fine">Prix en dollars canadiens, taxes incluses, pour un adulte en classe économique, relevés à l'heure du dernier balayage. Les tarifs changent vite : vérifiez toujours le prix final avant de payer. Chez les transporteurs à bas prix (Flair, Arajet, Allegiant, Breeze), le bagage de cabine et la valise sont souvent en supplément. Départs de Burlington (BTV) et Plattsburgh (PBG) : passeport requis pour traverser la frontière.</p>
+  </div>
+
+  <div class="pane" id="pane-hotels" role="tabpanel" aria-labelledby="tab-hotels" hidden>
+    <section class="filters" aria-label="Filtres des hôtels">
+      <div class="frow" id="h-prov"><span class="flabel">Province</span></div>
+      <div class="frow" id="h-sort"><span class="flabel">Trier</span>
+        <button class="chip" id="hsort-pct" data-sort="pct" aria-pressed="true">Plus gros rabais</button>
+        <button class="chip" id="hsort-price" data-sort="price" aria-pressed="false">Prix le plus bas</button>
+        <button class="chip" id="hsort-date" data-sort="checkin" aria-pressed="false">Arrivée la plus proche</button>
+        <button class="chip" id="hsort-rating" data-sort="rating" aria-pressed="false">Mieux notés</button>
+      </div>
+    </section>
+
+    <section class="board" id="hboard" aria-live="polite">
+      <div class="empty"><strong>Chargement des hôtels</strong>Les hôtels en rabais confirmés par l'agent s'affichent ici : ville, dates, prix par nuit, prix habituel et lien vers Google Hôtels.</div>
+    </section>
+
+    <section class="method">
+      <h2>Comment un hôtel arrive ici</h2>
+      <ol>
+        <li><strong>Balayage</strong>L'agent cherche les hôtels de 25 villes et lieux de vacances du Canada pour une fin de semaine (vendredi au dimanche) dans les 2 à 6 prochaines semaines.</li>
+        <li><strong>Vérification</strong>Chaque offre est rouverte sur Google Hôtels. Elle n'est gardée que si Google indique que le prix est « actuellement bas » pour ces dates.</li>
+        <li><strong>Publication</strong>Rabais d'au moins 20 %, note des clients de 3,5 ou plus, au moins 100 avis. Les auberges de jeunesse sont exclues.</li>
+      </ol>
+    </section>
+
+    <p class="fine">Prix par nuit en dollars canadiens, frais compris, pour 2 adultes, relevés à l'heure du dernier balayage. Le prix habituel est estimé à partir du pourcentage de rabais affiché par Google. Le prix le plus bas vient parfois d'un site de réservation moins connu : comparez les options sur la fiche Google et vérifiez les conditions d'annulation avant de payer.</p>
+  </div>
 </div>
 
 <script>
 (function () {
   var ORIGINS = { YUL: "Montréal", YQB: "Québec", YOW: "Ottawa", BTV: "Burlington", PBG: "Plattsburgh" };
-  var state = { deals: [], origin: "Tous", region: "Toutes", sort: "pct", showExpired: false, loaded: false, signedOut: false };
-  try { var saved = JSON.parse(localStorage.getItem("radar-prefs") || "{}"); if (saved.sort) state.sort = saved.sort; } catch (e) {}
+  var state = { deals: [], hotels: [], origin: "Tous", region: "Toutes", sort: "pct", showExpired: false,
+    prov: "Toutes", hsort: "pct", tab: "flights", loaded: false, hloaded: false, signedOut: false };
+  try { var saved = JSON.parse(localStorage.getItem("radar-prefs") || "{}"); if (saved.sort) state.sort = saved.sort; if (saved.hsort) state.hsort = saved.hsort; if (saved.tab) state.tab = saved.tab; } catch (e) {}
+  if (location.hash === "#hotels") state.tab = "hotels";
+  if (location.hash === "#vols") state.tab = "flights";
 
-  var board = document.getElementById("board");
+  var board = document.getElementById("board"), hboard = document.getElementById("hboard");
   var fmtDay = new Intl.DateTimeFormat("fr-CA", { day: "numeric", month: "short" });
   var fmtDayY = new Intl.DateTimeFormat("fr-CA", { day: "numeric", month: "short", year: "numeric" });
-  var fmtStamp = new Intl.DateTimeFormat("fr-CA", { day: "numeric", month: "long", hour: "2-digit", minute: "2-digit", timeZone: "America/Toronto" });
+  var fmtWd = new Intl.DateTimeFormat("fr-CA", { weekday: "short", day: "numeric", month: "short" });
+  var fmtStamp = new Intl.DateTimeFormat("fr-CA", { day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" });
   var fmtNum = new Intl.NumberFormat("fr-CA");
 
   function iso(d) { var m = /^(\d{4})-(\d{2})-(\d{2})/.exec(String(d || "")); return m ? new Date(+m[1], +m[2] - 1, +m[3]) : null; }
   function el(tag, cls, text) { var n = document.createElement(tag); if (cls) n.className = cls; if (text != null) n.textContent = text; return n; }
   function level(p) { return p >= 40 ? "Exceptionnelle" : p >= 20 ? "Aubaine" : "Bon prix"; }
   function safeUrl(u) { return typeof u === "string" && /^https:\/\/www\.google\.com\/travel\/flights/.test(u) ? u : null; }
+  function safeHotelUrl(u) { return typeof u === "string" && /^https:\/\/www\.google\.com\/travel\/(search|hotels)/.test(u) ? u : null; }
+  function save() { try { localStorage.setItem("radar-prefs", JSON.stringify({ sort: state.sort, hsort: state.hsort, tab: state.tab })); } catch (e) {} }
 
   function chips(hostId, values, key) {
     var host = document.getElementById(hostId);
@@ -166,6 +212,17 @@ h2 { font-family: var(--display); font-weight: 700; font-size: 26px; text-transf
       b.addEventListener("click", function () { state[key] = v; render(); });
       host.appendChild(b);
     });
+  }
+
+  function priceBlock(d, suffix, linkText, url) {
+    var fare = el("div", "fare");
+    var price = el("div", "price", fmtNum.format(+d.price || 0) + " ");
+    price.appendChild(el("small", null, suffix));
+    fare.appendChild(price);
+    if (d.usual) { var u = el("div", "usual", "Habituel "); u.appendChild(el("s", null, fmtNum.format(+d.usual) + " $")); fare.appendChild(u); }
+    if (d.pct) fare.appendChild(el("span", "pct", "−" + Math.round(+d.pct) + " %"));
+    if (url && d.status !== "expired") { var l = el("a", "go", linkText); l.href = url; l.target = "_blank"; l.rel = "noopener noreferrer"; fare.appendChild(l); }
+    return fare;
   }
 
   function ticket(d) {
@@ -189,20 +246,44 @@ h2 { font-family: var(--display); font-weight: 700; font-size: 26px; text-transf
     det.appendChild(el("div", "meta", [d.airline, d.stops, d.duration].filter(Boolean).join(" · ")));
     if (d.note) det.appendChild(el("div", "note", d.note));
 
-    var fare = el("div", "fare");
-    var price = el("div", "price", fmtNum.format(+d.price || 0) + " ");
-    price.appendChild(el("small", null, "$ CA"));
-    fare.appendChild(price);
-    if (d.usual) { var u = el("div", "usual", "Habituel "); u.appendChild(el("s", null, fmtNum.format(+d.usual) + " $")); fare.appendChild(u); }
-    if (d.pct) fare.appendChild(el("span", "pct", "−" + Math.round(+d.pct) + " %"));
-    var url = safeUrl(d.url);
-    if (url && d.status !== "expired") { var l = el("a", "go", "Voir sur Google Flights"); l.href = url; l.target = "_blank"; l.rel = "noopener noreferrer"; fare.appendChild(l); }
-
-    t.appendChild(route); t.appendChild(det); t.appendChild(fare);
+    t.appendChild(route); t.appendChild(det); t.appendChild(priceBlock(d, "$ CA", "Voir sur Google Flights", safeUrl(d.url)));
     return t;
   }
 
-  function render() {
+  function hotelTicket(h) {
+    var t = el("article", "ticket" + (h.status === "expired" ? " expired" : ""));
+    var left = el("div", "route");
+    left.appendChild(el("div", "hname", h.name || "Hôtel"));
+    var c = el("div", "cities");
+    c.appendChild(el("strong", null, h.city || h.locality || ""));
+    if (h.province) c.appendChild(document.createTextNode(", " + h.province));
+    left.appendChild(c);
+    left.appendChild(el("div", "tag", h.status === "expired" ? "Expirée" : level(+h.pct || 0)));
+
+    var det = el("div", "details");
+    var a = iso(h.checkin), b = iso(h.checkout);
+    var nights = h.nights || (a && b ? Math.round((b - a) / 864e5) : null);
+    det.appendChild(el("div", "dates", a && b ? fmtWd.format(a) + " → " + fmtWd.format(b) + (nights ? " · " + nights + " nuit" + (nights > 1 ? "s" : "") : "") : "Dates à confirmer"));
+    var meta = el("div", "meta");
+    if (h.stars) { meta.appendChild(el("span", "stars", "★".repeat(Math.max(1, Math.min(5, +h.stars))))); meta.appendChild(document.createTextNode(" · ")); }
+    if (h.rating) meta.appendChild(document.createTextNode("Note " + String(h.rating).replace(".", ",") + "/5" + (h.reviews ? " (" + h.reviews + " avis)" : "")));
+    det.appendChild(meta);
+    if (h.address) det.appendChild(el("div", "note", h.address));
+    if (h.note) det.appendChild(el("div", "note", h.note));
+
+    t.appendChild(left); t.appendChild(det); t.appendChild(priceBlock(h, "$ / nuit", "Voir sur Google Hôtels", safeHotelUrl(h.url)));
+    return t;
+  }
+
+  function emptyBox(host, loaded, what) {
+    var e = el("div", "empty");
+    if (state.signedOut) { e.appendChild(el("strong", null, "Données indisponibles")); e.appendChild(document.createTextNode("Les données ne sont pas accessibles pour le moment. Réessayez dans quelques minutes.")); }
+    else if (!loaded) { e.appendChild(el("strong", null, "Chargement")); e.appendChild(document.createTextNode("Les " + what + " confirmées par l'agent s'affichent ici.")); }
+    else { e.appendChild(el("strong", null, "Aucune aubaine pour ce filtre")); e.appendChild(document.createTextNode("Le prochain balayage ajoutera les nouveaux rabais confirmés. Essayez un autre filtre.")); }
+    host.appendChild(e);
+  }
+
+  function renderFlights() {
     var active = state.deals.filter(function (d) { return d.status !== "expired"; });
     var pool = state.showExpired ? state.deals : active;
     var origins = ["Tous"].concat(Object.keys(ORIGINS).filter(function (o) { return pool.some(function (d) { return d.origin === o; }); }));
@@ -211,9 +292,7 @@ h2 { font-family: var(--display); font-weight: 700; font-size: 26px; text-transf
     if (regions.indexOf(state.region) < 0) state.region = "Toutes";
     chips("f-origin", origins, "origin");
     chips("f-region", regions, "region");
-    ["pct", "price", "depart"].forEach(function (k) {
-      document.querySelector('[data-sort="' + k + '"]').setAttribute("aria-pressed", String(state.sort === k));
-    });
+    ["pct", "price", "depart"].forEach(function (k) { document.querySelector('#f-sort [data-sort="' + k + '"]').setAttribute("aria-pressed", String(state.sort === k)); });
     document.getElementById("toggle-expired").setAttribute("aria-pressed", String(state.showExpired));
 
     var list = pool.filter(function (d) {
@@ -224,39 +303,75 @@ h2 { font-family: var(--display); font-weight: 700; font-size: 26px; text-transf
       if (state.sort === "depart") return String(x.depart).localeCompare(String(y.depart));
       return (+y.pct || 0) - (+x.pct || 0);
     });
-
     board.textContent = "";
-    if (!list.length) {
-      var e = el("div", "empty");
-      if (state.signedOut) { e.appendChild(el("strong", null, "Tableau indisponible")); e.appendChild(document.createTextNode("Les aubaines n'ont pas pu être chargées. Rechargez la page dans un instant.")); }
-      else if (!state.loaded) { e.appendChild(el("strong", null, "Chargement du tableau")); e.appendChild(document.createTextNode("Les aubaines confirmées par l'agent s'affichent ici.")); }
-      else { e.appendChild(el("strong", null, "Aucune aubaine pour ce filtre")); e.appendChild(document.createTextNode("Le prochain balayage ajoutera les nouveaux rabais confirmés. Essayez un autre départ ou une autre région.")); }
-      board.appendChild(e);
-    } else list.forEach(function (d) { board.appendChild(ticket(d)); });
-    if (state.loaded) document.getElementById("st-count").textContent = String(active.length);
+    if (!list.length) emptyBox(board, state.loaded, "aubaines de vols");
+    else list.forEach(function (d) { board.appendChild(ticket(d)); });
+    if (state.loaded) document.getElementById("n-flights").textContent = String(active.length);
   }
 
+  function renderHotels() {
+    var active = state.hotels.filter(function (h) { return h.status !== "expired"; });
+    var provs = ["Toutes"].concat(active.map(function (h) { return h.province; }).filter(function (p, i, arr) { return p && arr.indexOf(p) === i; }).sort(function (a, b) { return a.localeCompare(b, "fr"); }));
+    if (provs.indexOf(state.prov) < 0) state.prov = "Toutes";
+    chips("h-prov", provs, "prov");
+    ["pct", "price", "checkin", "rating"].forEach(function (k) { document.querySelector('#h-sort [data-sort="' + k + '"]').setAttribute("aria-pressed", String(state.hsort === k)); });
+    var list = active.filter(function (h) { return state.prov === "Toutes" || h.province === state.prov; }).sort(function (x, y) {
+      if (state.hsort === "price") return (+x.price || 0) - (+y.price || 0);
+      if (state.hsort === "checkin") return String(x.checkin).localeCompare(String(y.checkin)) || (+y.pct || 0) - (+x.pct || 0);
+      if (state.hsort === "rating") return (+y.rating || 0) - (+x.rating || 0);
+      return (+y.pct || 0) - (+x.pct || 0);
+    });
+    hboard.textContent = "";
+    if (!list.length) emptyBox(hboard, state.hloaded, "aubaines d'hôtels");
+    else list.forEach(function (h) { hboard.appendChild(hotelTicket(h)); });
+    if (state.hloaded) document.getElementById("n-hotels").textContent = String(active.length);
+  }
+
+  function renderTabs() {
+    var f = state.tab !== "hotels";
+    document.getElementById("tab-flights").setAttribute("aria-selected", String(f));
+    document.getElementById("tab-hotels").setAttribute("aria-selected", String(!f));
+    document.getElementById("pane-flights").hidden = !f;
+    document.getElementById("pane-hotels").hidden = f;
+  }
+
+  function render() { renderTabs(); renderFlights(); renderHotels(); }
+
+  document.getElementById("tab-flights").addEventListener("click", function () { state.tab = "flights"; save(); render(); });
+  document.getElementById("tab-hotels").addEventListener("click", function () { state.tab = "hotels"; save(); render(); });
   document.getElementById("f-sort").addEventListener("click", function (ev) {
     var b = ev.target.closest("button"); if (!b) return;
-    if (b.dataset.sort) { state.sort = b.dataset.sort; try { localStorage.setItem("radar-prefs", JSON.stringify({ sort: state.sort })); } catch (e) {} }
+    if (b.dataset.sort) { state.sort = b.dataset.sort; save(); }
     else if (b.id === "toggle-expired") state.showExpired = !state.showExpired;
     render();
+  });
+  document.getElementById("h-sort").addEventListener("click", function (ev) {
+    var b = ev.target.closest("button"); if (!b || !b.dataset.sort) return;
+    state.hsort = b.dataset.sort; save(); render();
   });
 
   render();
 
-  fetch("deals.json?t=" + Date.now(), { cache: "no-store" }).then(function (r) {
-    if (!r.ok) throw new Error(String(r.status));
-    return r.json();
-  }).then(function (j) {
-    state.deals = Array.isArray(j.deals) ? j.deals : [];
-    state.loaded = true; state.signedOut = false; render();
-    var m = j.meta || {};
+  function applyMeta(m) {
+    if (!m) return;
     var t = m.lastRunAt ? new Date(m.lastRunAt) : null;
-    document.getElementById("st-last").textContent = t && !isNaN(t) ? fmtStamp.format(t) + " (heure de Montréal)" : "—";
+    document.getElementById("st-last").textContent = t && !isNaN(t) ? fmtStamp.format(t) : "—";
     document.getElementById("st-scanned").textContent = m.routesScanned != null ? fmtNum.format(+m.routesScanned) : "—";
-  }).catch(function () { state.loaded = true; state.signedOut = true; render(); });
+    document.getElementById("st-hscanned").textContent = m.hotelsScanned != null ? fmtNum.format(+m.hotelsScanned) : "—";
+  }
+
+  function loadSnapshot() {
+    fetch("data.json", { cache: "no-store" }).then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); }).then(function (d) {
+      state.deals = Array.isArray(d.deals) ? d.deals : [];
+      state.hotels = Array.isArray(d.hotels) ? d.hotels : [];
+      state.loaded = state.hloaded = true; state.signedOut = false;
+      applyMeta(d.meta); render();
+    }).catch(function () { state.loaded = state.hloaded = true; state.signedOut = true; render(); });
+  }
+
+  loadSnapshot();
 })();
 </script>
+
 </body>
 </html>
