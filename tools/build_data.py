@@ -25,6 +25,12 @@ def main():
     deals = [{k: d[k] for k in FLIGHT if k in d} for d in deals if d.get("origin") and d.get("dest")]
     hotels = [body(p) for p in sorted((src / "hotels").glob("*.json"))]
     hotels = [{k: h[k] for k in HOTEL if k in h} for h in hotels if h.get("name") and h.get("city")]
+    # Garde les aubaines actives et les expirées récentes (21 jours) pour que data.json reste léger.
+    from datetime import datetime, timedelta, timezone
+    cut = (datetime.now(timezone.utc) - timedelta(days=21)).strftime("%Y-%m-%dT%H:%M:%S")
+    recent = lambda x: x.get("status") != "expired" or str(x.get("lastSeenAt") or x.get("foundAt") or "") >= cut
+    deals = [d for d in deals if recent(d)]
+    hotels = [h for h in hotels if recent(h)]
     meta_file = src / "meta" / "status.json"
     meta = body(meta_file) if meta_file.exists() else {}
     meta["dealsActive"] = sum(1 for d in deals if d.get("status") != "expired")
