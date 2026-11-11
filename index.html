@@ -83,6 +83,7 @@ button:focus-visible, a:focus-visible { outline: 3px solid var(--sign); outline-
 .go { font-size: 14px; font-weight: 600; color: var(--ink); text-underline-offset: 3px; }
 .ticket.expired { opacity: .55; }
 .ticket.expired .price { background: var(--chip); color: var(--ink); }
+.badge-new { display: inline-block; background: var(--sign); color: var(--sign-ink); font-family: var(--display); font-weight: 700; text-transform: uppercase; letter-spacing: .1em; font-size: 12px; padding: 1px 8px; margin-left: 8px; vertical-align: middle; }
 .tag { font-family: var(--display); font-weight: 600; text-transform: uppercase; letter-spacing: .12em; font-size: 12px; color: var(--muted); }
 
 .empty { background: var(--surface); border: 1px dashed var(--line); border-radius: 6px; padding: 28px 20px; color: var(--muted); }
@@ -110,7 +111,7 @@ h2 { font-family: var(--display); font-weight: 700; font-size: 26px; text-transf
   <header>
     <div class="eyebrow"><b>Départs</b><span>YUL · YQB · YOW · BTV · PBG</span><b>Hôtels</b><span>25 villes au Canada</span></div>
     <h1>Radar Vols Montréal</h1>
-    <p class="lede">Des billets aller-retour nettement sous leur prix habituel au départ de Montréal, et des hôtels en rabais partout au Canada. Un agent balaie les prix deux fois par jour et ne garde que les rabais confirmés.</p>
+    <p class="lede">Des billets aller-retour nettement sous leur prix habituel au départ de Montréal, et des hôtels en rabais partout au Canada. Un agent balaie les prix chaque matin et ne garde que les rabais confirmés. Les nouveautés sont marquées « Nouveau ».</p>
     <div class="status" id="status" aria-live="polite">
       <span>Dernier balayage : <strong id="st-last">—</strong></span>
       <span>Routes comparées : <strong id="st-scanned">—</strong></span>
@@ -128,7 +129,8 @@ h2 { font-family: var(--display); font-weight: 700; font-size: 26px; text-transf
       <div class="frow" id="f-origin"><span class="flabel">Départ</span></div>
       <div class="frow" id="f-region"><span class="flabel">Région</span></div>
       <div class="frow" id="f-sort"><span class="flabel">Trier</span>
-        <button class="chip" id="sort-pct" data-sort="pct" aria-pressed="true">Plus gros rabais</button>
+        <button class="chip" id="sort-new" data-sort="new" aria-pressed="true">Nouveautés</button>
+        <button class="chip" id="sort-pct" data-sort="pct" aria-pressed="false">Plus gros rabais</button>
         <button class="chip" id="sort-price" data-sort="price" aria-pressed="false">Prix le plus bas</button>
         <button class="chip" id="sort-date" data-sort="depart" aria-pressed="false">Départ le plus proche</button>
         <button class="chip" id="toggle-expired" aria-pressed="false">Afficher les expirées</button>
@@ -144,7 +146,7 @@ h2 { font-family: var(--display); font-weight: 700; font-size: 26px; text-transf
       <ol>
         <li><strong>Balayage</strong>L'agent relève le meilleur prix aller-retour vers chaque région du monde, depuis les cinq aéroports, sur les six prochains mois.</li>
         <li><strong>Vérification</strong>Chaque prix prometteur est rouvert sur Google Flights aux dates exactes. Il n'est gardé que si Google le classe « bas » par rapport au prix habituel de la route.</li>
-        <li><strong>Publication</strong>Le rabais doit atteindre au moins 15 %. Une aubaine qui n'est plus disponible au balayage suivant passe en « expirée ».</li>
+        <li><strong>Publication</strong>Le rabais doit atteindre au moins 15 %. Chaque aubaine est revérifiée tous les deux ou trois jours ; celle qui n'est plus disponible passe en « expirée ».</li>
       </ol>
     </section>
 
@@ -155,7 +157,8 @@ h2 { font-family: var(--display); font-weight: 700; font-size: 26px; text-transf
     <section class="filters" aria-label="Filtres des hôtels">
       <div class="frow" id="h-prov"><span class="flabel">Province</span></div>
       <div class="frow" id="h-sort"><span class="flabel">Trier</span>
-        <button class="chip" id="hsort-pct" data-sort="pct" aria-pressed="true">Plus gros rabais</button>
+        <button class="chip" id="hsort-new" data-sort="new" aria-pressed="true">Nouveautés</button>
+        <button class="chip" id="hsort-pct" data-sort="pct" aria-pressed="false">Plus gros rabais</button>
         <button class="chip" id="hsort-price" data-sort="price" aria-pressed="false">Prix le plus bas</button>
         <button class="chip" id="hsort-date" data-sort="checkin" aria-pressed="false">Arrivée la plus proche</button>
         <button class="chip" id="hsort-rating" data-sort="rating" aria-pressed="false">Mieux notés</button>
@@ -169,7 +172,7 @@ h2 { font-family: var(--display); font-weight: 700; font-size: 26px; text-transf
     <section class="method">
       <h2>Comment un hôtel arrive ici</h2>
       <ol>
-        <li><strong>Balayage</strong>L'agent cherche les hôtels de 25 villes et lieux de vacances du Canada pour une fin de semaine (vendredi au dimanche) dans les 2 à 6 prochaines semaines.</li>
+        <li><strong>Balayage</strong>L'agent cherche les hôtels de 25 villes et lieux de vacances du Canada pour une fin de semaine (vendredi au dimanche) dans les 2 à 6 prochaines semaines. Chaque offre est revérifiée tous les deux ou trois jours.</li>
         <li><strong>Vérification</strong>Chaque offre est rouverte sur Google Hôtels. Elle n'est gardée que si Google indique que le prix est « actuellement bas » pour ces dates.</li>
         <li><strong>Publication</strong>Rabais d'au moins 20 %, note des clients de 3,5 ou plus, au moins 100 avis. Les auberges de jeunesse sont exclues.</li>
       </ol>
@@ -182,9 +185,9 @@ h2 { font-family: var(--display); font-weight: 700; font-size: 26px; text-transf
 <script>
 (function () {
   var ORIGINS = { YUL: "Montréal", YQB: "Québec", YOW: "Ottawa", BTV: "Burlington", PBG: "Plattsburgh" };
-  var state = { deals: [], hotels: [], origin: "Tous", region: "Toutes", sort: "pct", showExpired: false,
-    prov: "Toutes", hsort: "pct", tab: "flights", loaded: false, hloaded: false, signedOut: false };
-  try { var saved = JSON.parse(localStorage.getItem("radar-prefs") || "{}"); if (saved.sort) state.sort = saved.sort; if (saved.hsort) state.hsort = saved.hsort; if (saved.tab) state.tab = saved.tab; } catch (e) {}
+  var state = { deals: [], hotels: [], origin: "Tous", region: "Toutes", sort: "new", showExpired: false,
+    prov: "Toutes", hsort: "new", lastRun: null, tab: "flights", loaded: false, hloaded: false, signedOut: false };
+  try { var saved = JSON.parse(localStorage.getItem("radar-prefs-v2") || "{}"); if (saved.sort) state.sort = saved.sort; if (saved.hsort) state.hsort = saved.hsort; if (saved.tab) state.tab = saved.tab; } catch (e) {}
   if (location.hash === "#hotels") state.tab = "hotels";
   if (location.hash === "#vols") state.tab = "flights";
 
@@ -200,7 +203,11 @@ h2 { font-family: var(--display); font-weight: 700; font-size: 26px; text-transf
   function level(p) { return p >= 40 ? "Exceptionnelle" : p >= 20 ? "Aubaine" : "Bon prix"; }
   function safeUrl(u) { return typeof u === "string" && /^https:\/\/www\.google\.com\/travel\/flights/.test(u) ? u : null; }
   function safeHotelUrl(u) { return typeof u === "string" && /^https:\/\/www\.google\.com\/travel\/(search|hotels)/.test(u) ? u : null; }
-  function save() { try { localStorage.setItem("radar-prefs", JSON.stringify({ sort: state.sort, hsort: state.hsort, tab: state.tab })); } catch (e) {} }
+  function ts(v) { var t = v ? Date.parse(v) : NaN; return isNaN(t) ? 0 : t; }
+  function isNew(d) { if (d.status === "expired") return false; var f = ts(d.foundAt); var ref = ts(state.lastRun) || Date.now(); return f > 0 && ref - f < 36 * 36e5; }
+  function newFirst(x, y) { return (isNew(y) - isNew(x)) || (ts(y.foundAt) - ts(x.foundAt)) || ((+y.pct || 0) - (+x.pct || 0)); }
+  function verified(d) { var t = ts(d.lastSeenAt); return t ? "Prix vérifié le " + fmtDay.format(new Date(t)) : ""; }
+  function save() { try { localStorage.setItem("radar-prefs-v2", JSON.stringify({ sort: state.sort, hsort: state.hsort, tab: state.tab })); } catch (e) {} }
 
   function chips(hostId, values, key) {
     var host = document.getElementById(hostId);
@@ -238,13 +245,16 @@ h2 { font-family: var(--display); font-weight: 700; font-size: 26px; text-transf
     cities.appendChild(el("strong", null, d.destCity || ""));
     if (d.country) cities.appendChild(document.createTextNode(", " + d.country));
     route.appendChild(cities);
-    route.appendChild(el("div", "tag", d.status === "expired" ? "Expirée" : level(+d.pct || 0)));
+    var tg = el("div", "tag", d.status === "expired" ? "Expirée" : level(+d.pct || 0));
+    if (isNew(d)) tg.appendChild(el("span", "badge-new", "Nouveau"));
+    route.appendChild(tg);
 
     var det = el("div", "details");
     var a = iso(d.depart), b = iso(d.ret);
     det.appendChild(el("div", "dates", a && b ? fmtDay.format(a) + " → " + fmtDayY.format(b) : "Dates à confirmer"));
     det.appendChild(el("div", "meta", [d.airline, d.stops, d.duration].filter(Boolean).join(" · ")));
     if (d.note) det.appendChild(el("div", "note", d.note));
+    if (d.status !== "expired" && verified(d)) det.appendChild(el("div", "note", verified(d)));
 
     t.appendChild(route); t.appendChild(det); t.appendChild(priceBlock(d, "$ CA", "Voir sur Google Flights", safeUrl(d.url)));
     return t;
@@ -258,7 +268,9 @@ h2 { font-family: var(--display); font-weight: 700; font-size: 26px; text-transf
     c.appendChild(el("strong", null, h.city || h.locality || ""));
     if (h.province) c.appendChild(document.createTextNode(", " + h.province));
     left.appendChild(c);
-    left.appendChild(el("div", "tag", h.status === "expired" ? "Expirée" : level(+h.pct || 0)));
+    var htg = el("div", "tag", h.status === "expired" ? "Expirée" : level(+h.pct || 0));
+    if (isNew(h)) htg.appendChild(el("span", "badge-new", "Nouveau"));
+    left.appendChild(htg);
 
     var det = el("div", "details");
     var a = iso(h.checkin), b = iso(h.checkout);
@@ -270,6 +282,7 @@ h2 { font-family: var(--display); font-weight: 700; font-size: 26px; text-transf
     det.appendChild(meta);
     if (h.address) det.appendChild(el("div", "note", h.address));
     if (h.note) det.appendChild(el("div", "note", h.note));
+    if (h.status !== "expired" && verified(h)) det.appendChild(el("div", "note", verified(h)));
 
     t.appendChild(left); t.appendChild(det); t.appendChild(priceBlock(h, "$ / nuit", "Voir sur Google Hôtels", safeHotelUrl(h.url)));
     return t;
@@ -292,13 +305,14 @@ h2 { font-family: var(--display); font-weight: 700; font-size: 26px; text-transf
     if (regions.indexOf(state.region) < 0) state.region = "Toutes";
     chips("f-origin", origins, "origin");
     chips("f-region", regions, "region");
-    ["pct", "price", "depart"].forEach(function (k) { document.querySelector('#f-sort [data-sort="' + k + '"]').setAttribute("aria-pressed", String(state.sort === k)); });
+    ["new", "pct", "price", "depart"].forEach(function (k) { document.querySelector('#f-sort [data-sort="' + k + '"]').setAttribute("aria-pressed", String(state.sort === k)); });
     document.getElementById("toggle-expired").setAttribute("aria-pressed", String(state.showExpired));
 
     var list = pool.filter(function (d) {
       return (state.origin === "Tous" || d.origin === state.origin) && (state.region === "Toutes" || d.region === state.region);
     }).sort(function (x, y) {
       if ((x.status === "expired") !== (y.status === "expired")) return x.status === "expired" ? 1 : -1;
+      if (state.sort === "new") return newFirst(x, y);
       if (state.sort === "price") return (+x.price || 0) - (+y.price || 0);
       if (state.sort === "depart") return String(x.depart).localeCompare(String(y.depart));
       return (+y.pct || 0) - (+x.pct || 0);
@@ -314,8 +328,9 @@ h2 { font-family: var(--display); font-weight: 700; font-size: 26px; text-transf
     var provs = ["Toutes"].concat(active.map(function (h) { return h.province; }).filter(function (p, i, arr) { return p && arr.indexOf(p) === i; }).sort(function (a, b) { return a.localeCompare(b, "fr"); }));
     if (provs.indexOf(state.prov) < 0) state.prov = "Toutes";
     chips("h-prov", provs, "prov");
-    ["pct", "price", "checkin", "rating"].forEach(function (k) { document.querySelector('#h-sort [data-sort="' + k + '"]').setAttribute("aria-pressed", String(state.hsort === k)); });
+    ["new", "pct", "price", "checkin", "rating"].forEach(function (k) { document.querySelector('#h-sort [data-sort="' + k + '"]').setAttribute("aria-pressed", String(state.hsort === k)); });
     var list = active.filter(function (h) { return state.prov === "Toutes" || h.province === state.prov; }).sort(function (x, y) {
+      if (state.hsort === "new") return newFirst(x, y);
       if (state.hsort === "price") return (+x.price || 0) - (+y.price || 0);
       if (state.hsort === "checkin") return String(x.checkin).localeCompare(String(y.checkin)) || (+y.pct || 0) - (+x.pct || 0);
       if (state.hsort === "rating") return (+y.rating || 0) - (+x.rating || 0);
@@ -354,6 +369,7 @@ h2 { font-family: var(--display); font-weight: 700; font-size: 26px; text-transf
 
   function applyMeta(m) {
     if (!m) return;
+    state.lastRun = m.lastRunAt || null;
     var t = m.lastRunAt ? new Date(m.lastRunAt) : null;
     document.getElementById("st-last").textContent = t && !isNaN(t) ? fmtStamp.format(t) : "—";
     document.getElementById("st-scanned").textContent = m.routesScanned != null ? fmtNum.format(+m.routesScanned) : "—";
