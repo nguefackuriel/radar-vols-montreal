@@ -291,14 +291,14 @@ h2 { font-family: var(--display); font-weight: 700; font-size: 26px; text-transf
     });
   }
 
-  function priceBlock(d, suffix, linkText, url) {
+  function priceBlock(d, suffix, linkText, url, gc) {
     var fare = el("div", "fare");
     var price = el("div", "price", (lang === "en" ? "$" : "") + fmtNum.format(+d.price || 0) + " ");
     price.appendChild(el("small", null, suffix));
     fare.appendChild(price);
     if (d.usual) { var u = el("div", "usual", T("usual")); u.appendChild(el("s", null, money(d.usual))); fare.appendChild(u); }
     if (d.pct) fare.appendChild(el("span", "pct", "−" + Math.round(+d.pct) + (lang === "en" ? "%" : " %")));
-    if (url && d.status !== "expired") { var l = el("a", "go", linkText); l.href = gLink(url); l.target = "_blank"; l.rel = "noopener noreferrer"; fare.appendChild(l); }
+    if (url && d.status !== "expired") { var l = el("a", "go", linkText); l.href = gLink(url); if (gc) l.setAttribute("data-gc", gc); l.target = "_blank"; l.rel = "noopener noreferrer"; fare.appendChild(l); }
     return fare;
   }
 
@@ -326,7 +326,7 @@ h2 { font-family: var(--display); font-weight: 700; font-size: 26px; text-transf
     if (d.note) det.appendChild(el("div", "note", tNote(d.note)));
     if (d.status !== "expired" && verified(d)) det.appendChild(el("div", "note", verified(d)));
 
-    t.appendChild(route); t.appendChild(det); t.appendChild(priceBlock(d, lang === "en" ? "CAD" : "$ CA", T("viewF"), safeUrl(d.url)));
+    t.appendChild(route); t.appendChild(det); t.appendChild(priceBlock(d, lang === "en" ? "CAD" : "$ CA", T("viewF"), safeUrl(d.url), "clic-vol/" + (d.origin || "") + "-" + (d.dest || "")));
     return t;
   }
 
@@ -354,7 +354,7 @@ h2 { font-family: var(--display); font-weight: 700; font-size: 26px; text-transf
     if (h.note) det.appendChild(el("div", "note", tNote(h.note)));
     if (h.status !== "expired" && verified(h)) det.appendChild(el("div", "note", verified(h)));
 
-    t.appendChild(left); t.appendChild(det); t.appendChild(priceBlock(h, lang === "en" ? "/ night" : "$ / nuit", T("viewH"), safeHotelUrl(h.url)));
+    t.appendChild(left); t.appendChild(det); t.appendChild(priceBlock(h, lang === "en" ? "/ night" : "$ / nuit", T("viewH"), safeHotelUrl(h.url), "clic-hotel/" + (h.city || "") + "/" + (h.name || "")));
     return t;
   }
 
@@ -435,11 +435,15 @@ h2 { font-family: var(--display); font-weight: 700; font-size: 26px; text-transf
     state.hsort = b.dataset.sort; save(); render();
   });
 
+  function gcEvent(path) { try { if (window.goatcounter && window.goatcounter.count) window.goatcounter.count({ path: path, title: path, event: true }); } catch (e) {} }
+  document.addEventListener("click", function (ev) { var a = ev.target && ev.target.closest ? ev.target.closest("a.go[data-gc]") : null; if (a) gcEvent(a.getAttribute("data-gc")); });
+
   applyStatic();
   render();
   Array.prototype.forEach.call(document.querySelectorAll(".lang button"), function (b) {
     b.addEventListener("click", function () {
       lang = b.getAttribute("data-lang") === "en" ? "en" : "fr";
+      gcEvent("langue/" + lang);
       try { localStorage.setItem("radar-lang", lang); } catch (e) {}
       try { var u = new URL(location.href); u.searchParams.set("lang", lang); history.replaceState(null, "", u.pathname + u.search + u.hash); } catch (e) {}
       setFormats(); applyStatic(); if (lastMeta) applyMeta(lastMeta); render();
@@ -470,5 +474,6 @@ h2 { font-family: var(--display); font-weight: 700; font-size: 26px; text-transf
 })();
 </script>
 
+<script data-goatcounter="https://radarvols.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
 </body>
 </html>
